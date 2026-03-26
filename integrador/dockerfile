@@ -1,0 +1,26 @@
+# ── Stage 1: build ────────────────────────────────────────────────────────────
+FROM golang:1.22-alpine AS builder
+ 
+WORKDIR /app
+ 
+# Copia todos os arquivos .go (não há go.mod — pacote main único)
+COPY *.go ./
+ 
+# Compila um binário estático (sem dependências de libc)
+RUN CGO_ENABLED=0 GOOS=linux go build -o integrador .
+ 
+# ── Stage 2: imagem final mínima ──────────────────────────────────────────────
+FROM scratch
+ 
+COPY --from=builder /app/integrador /integrador
+ 
+# Clientes (WebSocket dashboard)
+EXPOSE 8080
+ 
+# Atuadores (WebSocket hardware)
+EXPOSE 9090
+ 
+# Sensores (UDP)
+EXPOSE 5000/udp
+ 
+ENTRYPOINT ["/integrador"]

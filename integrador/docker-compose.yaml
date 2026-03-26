@@ -1,0 +1,16 @@
+services:
+  integrador:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: integrador
+    restart: unless-stopped
+ 
+    ports:
+      # Clientes (WebSocket dashboard)  host:container
+      - "8080:8080"
+      # Atuadores (WebSocket hardware)
+      - "9090:9090"
+      # Sensores (UDP) — protocolo UDP obrigatório
+      - "5000:5000/udp"
+ 

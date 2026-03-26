@@ -6,8 +6,9 @@ WORKDIR /app
 # Copia todos os arquivos .go (não há go.mod — pacote main único)
 COPY *.go ./
  
-# Compila um binário estático (sem dependências de libc)
-RUN CGO_ENABLED=0 GOOS=linux go build -o integrador .
+# Inicializa o módulo e compila (sem dependências externas, só stdlib)
+RUN go mod init integrador && \
+    CGO_ENABLED=0 GOOS=linux go build -o integrador .
  
 # ── Stage 2: imagem final mínima ──────────────────────────────────────────────
 FROM scratch

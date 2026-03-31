@@ -86,7 +86,7 @@ func main() {
 			continue
 		}
 
-		fmt.Printf("📤 ID=%d  %d°C\n", sensorID, value)
+		fmt.Printf("ID=%d  %d°C\n", sensorID, value)
 
 		if ascending {
 			if value >= TempMax {

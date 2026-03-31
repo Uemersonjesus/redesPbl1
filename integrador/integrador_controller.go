@@ -165,7 +165,7 @@ func (ig *Integrador) OnSensorData(data diagramaUdpInformation) {
 
 	// Se sensor novo → tenta parear com atuador livre
 	if isNew {
-		fmt.Printf("🆕 Novo sensor detectado: ID=%d tipo=%d\n", data.ID, data.Tipo)
+		fmt.Printf("Novo sensor detectado: ID=%d tipo=%d\n", data.ID, data.Tipo)
 		ig.Matches.TryMatch(ig.Sensors, ig.Actuators)
 	}
 
@@ -179,7 +179,7 @@ func (ig *Integrador) OnSensorData(data diagramaUdpInformation) {
 // ─── Chamado pelo WebSocket ao conectar novo atuador ─────────────────────────
 
 func (ig *Integrador) OnActuatorConnected(actuatorID uint16) {
-	fmt.Printf("🆕 Novo atuador conectado: ID=%d\n", actuatorID)
+	fmt.Printf("Novo atuador conectado: ID=%d\n", actuatorID)
 	ig.Matches.TryMatch(ig.Sensors, ig.Actuators)
 }
 
@@ -216,7 +216,7 @@ func (ig *Integrador) BroadcastSensorUpdate(data diagramaUdpInformation) {
 		select {
 		case c.Send <- raw:
 		default:
-			fmt.Printf("⚠️  Cliente %d lento, mensagem descartada\n", c.ID)
+			fmt.Printf("Cliente %d lento, mensagem descartada\n", c.ID)
 		}
 	}
 }
@@ -256,7 +256,7 @@ func (ig *Integrador) AutoControl(data diagramaUdpInformation) {
 func (ig *Integrador) OnClientCommand(clientID uint16, raw []byte) {
 	var cmd ClientCommand
 	if err := json.Unmarshal(raw, &cmd); err != nil {
-		fmt.Printf("⚠️  Cliente %d enviou JSON inválido: %s\n", clientID, raw)
+		fmt.Printf("Cliente %d enviou JSON inválido: %s\n", clientID, raw)
 		return
 	}
 
@@ -265,13 +265,14 @@ func (ig *Integrador) OnClientCommand(clientID uint16, raw []byte) {
 	}
 
 	actuatorID := ig.Matches.ActuatorFor(cmd.SensorID)
+	
 	if actuatorID == 0 {
-		fmt.Printf("⚠️  Cliente %d pediu controle do sensor %d, mas sem atuador vinculado\n",
+		fmt.Printf("Cliente %d pediu controle do sensor %d, mas sem atuador vinculado\n",
 			clientID, cmd.SensorID)
 		return
 	}
 
-	fmt.Printf("🕹️  Cliente %d enviou comando '%s' para sensor %d → atuador %d\n",
+	fmt.Printf("Cliente %d enviou comando '%s' para sensor %d → atuador %d\n",
 		clientID, cmd.Command, cmd.SensorID, actuatorID)
 
 	ig.SendCommandToActuator(actuatorID, cmd.SensorID, cmd.Command, "client")

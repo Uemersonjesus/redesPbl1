@@ -52,9 +52,10 @@ func findLargestActuatorId(m *MapOfActuators) uint16 {
 	return max
 }
 
-func (m *MapOfActuators) FindNewIdToActuator(a Actuator) uint16 {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+func (m *MapOfActuators) FindNewIdToActuator(a Actuator, globalActuator *MapOfActuators) uint16 {
+
+	globalActuator.mu.Lock()
+	defer globalActuator.mu.Unlock()
 
 	paternId := a.ID
 	thisIdExists := false
@@ -69,6 +70,7 @@ func (m *MapOfActuators) FindNewIdToActuator(a Actuator) uint16 {
 
 	if !thisIdExists {
 		newId := largestId + 1
+		m.actuatorsRegistred[newId] = a
 		return newId
 	} else {
 		return paternId

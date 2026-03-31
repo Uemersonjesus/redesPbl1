@@ -51,13 +51,15 @@ func handleActuatorWebsocketConnection(w http.ResponseWriter, r *http.Request, g
 		Send:  make(chan []byte, 256),
 	}
 
-	oficialId := globalActuators.FindNewIdToActuator(a)
+	oficialId := globalActuators.FindNewIdToActuator(a, globalActuators)
 	a.ID = oficialId
 
-	globalActuators.mu.Lock()
-	globalActuators.actuatorsRegistred[oficialId] = a
-	globalActuators.mu.Unlock()
-
+	/*
+		Bug de  race condition
+		globalActuators.mu.Lock()
+		globalActuators.actuatorsRegistred[oficialId] = a
+		globalActuators.mu.Unlock()
+	*/
 	welcomeMsg := []byte(fmt.Sprintf(`{"type":"actuator_ack","id":%d}`, oficialId))
 	a.Send <- welcomeMsg
 

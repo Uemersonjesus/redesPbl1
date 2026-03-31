@@ -51,7 +51,7 @@ func main() {
 	// ── Abre conexão TCP com o integrador ────────────────────────────────────
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		log.Fatalf("❌ Não foi possível conectar ao integrador em %s: %v", addr, err)
+		log.Fatalf("Não foi possível conectar ao integrador em %s: %v", addr, err)
 	}
 	defer conn.Close()
 
@@ -81,15 +81,15 @@ func main() {
 		}
 	}
 
-	fmt.Printf("⚡ Atuador conectado ao integrador em %s\n", addr)
-	fmt.Println("👂 Aguardando comandos...")
+	fmt.Printf("Atuador conectado ao integrador em %s\n", addr)
+	fmt.Println("Aguardando comandos...")
 
 	// ── Loop de leitura de frames WebSocket ──────────────────────────────────
 	for {
 		// Lê os 2 bytes do header do frame
 		header := make([]byte, 2)
 		if _, err := rw.Read(header); err != nil {
-			fmt.Println("🔌 Conexão encerrada pelo integrador.")
+			fmt.Println("🔌Conexão encerrada pelo integrador.")
 			break
 		}
 
@@ -113,23 +113,23 @@ func main() {
 		// Tenta parsear como comando
 		var cmd ActuatorCommand
 		if err := json.Unmarshal(payload, &cmd); err != nil {
-			fmt.Printf("📨 Mensagem raw: %s\n", string(payload))
+			fmt.Printf("Mensagem raw: %s\n", string(payload))
 			continue
 		}
 
 		// É uma mensagem de boas-vindas do integrador
 		if cmd.Type == "actuator_ack" {
-			fmt.Printf("✅ Registrado no integrador\n")
+			fmt.Printf("Registrado no integrador\n")
 			continue
 		}
 
 		// Comando de ligar/desligar
 		if cmd.Command == "on" {
-			fmt.Printf("💡 LIGANDO  — sensor=%d  origem=%s\n", cmd.SensorID, cmd.TriggeredBy)
+			fmt.Printf("LIGANDO  — sensor=%d  origem=%s\n", cmd.SensorID, cmd.TriggeredBy)
 		} else if cmd.Command == "off" {
-			fmt.Printf("🔴 DESLIGANDO — sensor=%d  origem=%s\n", cmd.SensorID, cmd.TriggeredBy)
+			fmt.Printf("DESLIGANDO — sensor=%d  origem=%s\n", cmd.SensorID, cmd.TriggeredBy)
 		} else {
-			fmt.Printf("📨 Comando desconhecido: %s\n", string(payload))
+			fmt.Printf("Comando desconhecido: %s\n", string(payload))
 		}
 	}
 }

@@ -35,6 +35,7 @@ func (m *mapOfSensors) ExistsThisSensor(u uint16) bool {
 	return true
 }
 
+//Parei de usar estas funções depois que mudei a definição do id do sensor diretamente nele.
 func (m *mapOfSensors) findUDatagrama(u uint16) (diagramaUdpInformation, bool) {
 	datagrama, ok := m.sensors[u]
 	return datagrama, ok

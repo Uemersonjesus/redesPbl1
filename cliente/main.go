@@ -143,7 +143,7 @@ func main() {
 
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
-		fmt.Printf("❌ Não foi possível conectar ao integrador em %s: %v\n", addr, err)
+		fmt.Printf("Não foi possível conectar ao integrador em %s: %v\n", addr, err)
 		os.Exit(1)
 	}
 	defer conn.Close()
@@ -246,14 +246,14 @@ func main() {
 
 		id64, err := strconv.ParseUint(line, 10, 16)
 		if err != nil {
-			fmt.Println("❌ ID inválido.\n")
+			fmt.Println("ID inválido.\n")
 			continue
 		}
 
 		sensorID := uint16(id64)
 		st, ok := store.Get(sensorID)
 		if !ok {
-			fmt.Printf("❌ Sensor %d não encontrado. Aguarde e tente novamente.\n\n", sensorID)
+			fmt.Printf("Sensor %d não encontrado. Aguarde e tente novamente.\n\n", sensorID)
 			continue
 		}
 
@@ -262,11 +262,11 @@ func main() {
 		monitoringID = sensorID
 		monitorMu.Unlock()
 
-		fmt.Printf("\n📡 Monitorando sensor %d (%s)\n", sensorID, tipoName(st.Tipo))
+		fmt.Printf("\nMonitorando sensor %d (%s)\n", sensorID, tipoName(st.Tipo))
 		if st.ActuatorID != 0 {
-			fmt.Printf("🔗 Atuador vinculado: ID=%d\n", st.ActuatorID)
+			fmt.Printf("Atuador vinculado: ID=%d\n", st.ActuatorID)
 		} else {
-			fmt.Println("⚠️  Sem atuador vinculado")
+			fmt.Println("Sem atuador vinculado")
 		}
 		fmt.Println("Comandos: on | off | sair")
 		fmt.Println(strings.Repeat("─", 45))
@@ -281,7 +281,7 @@ func main() {
 					if update.ActuatorID != 0 {
 						atuador = fmt.Sprintf("atuador=%d", update.ActuatorID)
 					}
-					fmt.Printf("\r📊 ID=%-5d  %3d%-3s  %s          ",
+					fmt.Printf("\r ID=%-5d  %3d%-3s  %s          ",
 						update.ID, update.Information, update.Unit, atuador)
 				case <-stopPrint:
 					return
@@ -305,14 +305,14 @@ func main() {
 			}
 
 			if cmd != "on" && cmd != "off" {
-				fmt.Println("❌ Comando inválido. Use: on | off | sair")
+				fmt.Println("Comando inválido. Use: on | off | sair")
 				continue
 			}
 
 			// Verifica se tem atuador antes de enviar
 			current, _ := store.Get(sensorID)
 			if current.ActuatorID == 0 {
-				fmt.Println("⚠️  Este sensor não possui atuador vinculado.")
+				fmt.Println("este sensor não possui atuador vinculado.")
 				continue
 			}
 
@@ -324,12 +324,12 @@ func main() {
 			raw, _ := json.Marshal(msg)
 
 			if err := sendFrame(conn, raw); err != nil {
-				fmt.Printf("❌ Erro ao enviar comando: %v\n", err)
+				fmt.Printf("Erro ao enviar comando: %v\n", err)
 				close(stopPrint)
 				break
 			}
 
-			fmt.Printf("✅ Comando '%s' enviado para sensor %d\n", cmd, sensorID)
+			fmt.Printf("Comando '%s' enviado para sensor %d\n", cmd, sensorID)
 		}
 	}
 }

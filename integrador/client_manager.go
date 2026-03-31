@@ -49,9 +49,10 @@ func findLargestClientId(m *MapOfClients) uint16 {
 	return max
 }
 
-func (m *MapOfClients) FindNewIdToClient(c Client) uint16 {
-	m.mu.Lock()
-	defer m.mu.Unlock()
+func (m *MapOfClients) FindNewIdToClient(c Client, globalClient *MapOfClients) uint16 {
+
+	globalClient.mu.Lock()
+	defer globalClient.mu.Unlock()
 
 	paternId := c.ID
 	thisIdExists := false
@@ -65,6 +66,7 @@ func (m *MapOfClients) FindNewIdToClient(c Client) uint16 {
 	largestId := findLargestClientId(m)
 
 	if !thisIdExists {
+		m.clientsRegistred[largestId+1] = c
 		return largestId + 1
 	}
 	return paternId

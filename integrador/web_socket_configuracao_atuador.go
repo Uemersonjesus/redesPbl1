@@ -42,7 +42,7 @@ func handleActuatorWebsocketConnection(w http.ResponseWriter, r *http.Request, g
 	bufrw.WriteString(response)
 	bufrw.Flush()
 
-	fmt.Println("⚡ Conexão de ATUADOR estabelecida na porta 9090!")
+	fmt.Println("Conexão de ATUADOR estabelecida na porta 9090!")
 
 	a := Actuator{
 		ID:    0,
@@ -51,7 +51,7 @@ func handleActuatorWebsocketConnection(w http.ResponseWriter, r *http.Request, g
 		Send:  make(chan []byte, 256),
 	}
 
-	oficialId := globalActuators.FindNewIdToActuator(a, globalActuators)
+	oficialId := globalActuators.FindNewIdToActuator(a)
 	a.ID = oficialId
 
 	/*
@@ -72,5 +72,5 @@ func handleActuatorWebsocketConnection(w http.ResponseWriter, r *http.Request, g
 	// Limpeza ao desconectar
 	globalActuators.RemoveActuator(oficialId)
 	ig.OnActuatorDisconnected(oficialId)
-	fmt.Printf("🔧 Atuador %d desconectado da porta 9090.\n", oficialId)
+	fmt.Printf("Atuador %d desconectado da porta 9090.\n", oficialId)
 }

@@ -22,7 +22,7 @@ func managerUdpConnections(c *net.UDPConn, m *mapOfSensors, ig *Integrador) {
 			continue
 		}
 
-		fmt.Printf("📡 UDP recebido — sensor ID=%d tipo=%d valor=%d (de %s)\n",
+		fmt.Printf("UDP recebido — sensor ID=%d tipo=%d valor=%d (de %s)\n",
 			sensorData.ID, sensorData.Tipo, sensorData.Information, addr)
 
 		// Delega toda a lógica ao Integrador

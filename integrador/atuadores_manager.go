@@ -18,11 +18,14 @@ type Actuator struct {
 type MapOfActuators struct {
 	mu                 sync.Mutex
 	actuatorsRegistred map[uint16]Actuator
+
+	nextID uint16
 }
 
 func NewMapOfActuators() MapOfActuators {
 	return MapOfActuators{
 		actuatorsRegistred: make(map[uint16]Actuator),
+		nextID:             0,
 	}
 }
 
@@ -52,29 +55,23 @@ func findLargestActuatorId(m *MapOfActuators) uint16 {
 	return max
 }
 
-func (m *MapOfActuators) FindNewIdToActuator(a Actuator, globalActuator *MapOfActuators) uint16 {
+func (m *MapOfActuators) FindNewIdToActuator(a Actuator) uint16 {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-	globalActuator.mu.Lock()
-	defer globalActuator.mu.Unlock()
-
-	paternId := a.ID
-	thisIdExists := false
-
-	for id := range m.actuatorsRegistred {
-		if paternId == id && paternId != 0 {
-			thisIdExists = true
+	// Map lookup é O(1) — não precisa percorrer nada
+	if a.ID != 0 {
+		if _, exists := m.actuatorsRegistred[a.ID]; !exists {
+			m.actuatorsRegistred[a.ID] = a
 		}
+		return a.ID
 	}
 
-	largestId := findLargestActuatorId(m)
-
-	if !thisIdExists {
-		newId := largestId + 1
-		m.actuatorsRegistred[newId] = a
-		return newId
-	} else {
-		return paternId
-	}
+	// ID 0 significa que o atuador não tem ID ainda — gera um novo
+	// Também O(1): incrementa um contador em vez de buscar o maior
+	m.nextID++
+	m.actuatorsRegistred[m.nextID] = a
+	return m.nextID
 }
 
 func (m *MapOfActuators) RemoveActuator(id uint16) {

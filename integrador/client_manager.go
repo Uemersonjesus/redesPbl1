@@ -17,11 +17,14 @@ type Client struct {
 type MapOfClients struct {
 	mu               sync.Mutex
 	clientsRegistred map[uint16]Client
+
+	nextID uint16
 }
 
 func NewMapOfClients() MapOfClients {
 	return MapOfClients{
 		clientsRegistred: make(map[uint16]Client),
+		nextID:           0,
 	}
 }
 
@@ -49,27 +52,22 @@ func findLargestClientId(m *MapOfClients) uint16 {
 	return max
 }
 
-func (m *MapOfClients) FindNewIdToClient(c Client, globalClient *MapOfClients) uint16 {
+func (m *MapOfClients) FindNewIdToClient(c Client) uint16 {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-	globalClient.mu.Lock()
-	defer globalClient.mu.Unlock()
-
-	paternId := c.ID
-	thisIdExists := false
-
-	for id := range m.clientsRegistred {
-		if paternId == id && paternId != 0 {
-			thisIdExists = true
+	// ID já existe no mapa — retorna sem fazer nada
+	if c.ID != 0 {
+		if _, exists := m.clientsRegistred[c.ID]; !exists {
+			m.clientsRegistred[c.ID] = c
 		}
+		return c.ID
 	}
 
-	largestId := findLargestClientId(m)
-
-	if !thisIdExists {
-		m.clientsRegistred[largestId+1] = c
-		return largestId + 1
-	}
-	return paternId
+	// ID 0 — gera novo com contador O(1)
+	m.nextID++
+	m.clientsRegistred[m.nextID] = c
+	return m.nextID
 }
 
 func (m *MapOfClients) RemoveClient(id uint16) {

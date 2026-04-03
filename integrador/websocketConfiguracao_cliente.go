@@ -42,7 +42,7 @@ func handleNativeWebsocketConection(w http.ResponseWriter, r *http.Request, glob
 	bufrw.WriteString(response)
 	bufrw.Flush()
 
-	fmt.Println("🖥️  Conexão WebSocket de CLIENTE estabelecida!")
+	fmt.Println("Conexão WebSocket de CLIENTE estabelecida!")
 
 	c := Client{
 		ID:    0,
@@ -58,13 +58,12 @@ func handleNativeWebsocketConection(w http.ResponseWriter, r *http.Request, glob
 	globalClients.clientsRegistred[oficialId] = c
 	globalClients.mu.Unlock()
 
-	// Boas-vindas com lista atual de sensores
 	welcomeMsg := []byte(fmt.Sprintf(`{"type":"welcome","id":%d}`, oficialId))
 	c.Send <- welcomeMsg
 
 	go c.writePump()
-	c.readPump(ig) // Loop de leitura — recebe comandos manuais
+	c.readPump(ig)
 
 	globalClients.RemoveClient(oficialId)
-	fmt.Printf("🖥️  Cliente %d desconectado.\n", oficialId)
+	fmt.Printf("Cliente %d desconectado.\n", oficialId)
 }

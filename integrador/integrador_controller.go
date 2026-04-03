@@ -63,79 +63,86 @@ type Match struct {
 }
 
 type MatchTable struct {
-	mu         sync.RWMutex
-	byActuator map[uint16]uint16 // actuatorID → sensorID
-	bySensor   map[uint16]uint16 // sensorID   → actuatorID
+	mu sync.RWMutex // RWMutex para permitir leituras concorrentes
+
+	byActuator    map[uint16]uint16
+	bySensor      map[uint16]uint16
+	freeSensors   []uint16
+	freeActuators []uint16
 }
 
 func NewMatchTable() *MatchTable {
 	return &MatchTable{
-		byActuator: make(map[uint16]uint16),
-		bySensor:   make(map[uint16]uint16),
+		byActuator:    make(map[uint16]uint16),
+		bySensor:      make(map[uint16]uint16),
+		freeSensors:   make([]uint16, 0),
+		freeActuators: make([]uint16, 0),
 	}
 }
 
-// TryMatch tenta parear sensor sem atuador com atuador sem sensor (ou vice-versa).
-// Retorna o par formado, ou zero se não foi possível.
-func (mt *MatchTable) TryMatch(sensors *mapOfSensors, actuators *MapOfActuators) *Match {
+func (mt *MatchTable) RegisterSensor(sID uint16) *Match {
 	mt.mu.Lock()
 	defer mt.mu.Unlock()
 
-	actuators.mu.Lock()
-	defer actuators.mu.Unlock()
-
-	sensors.mu.Lock()
-	defer sensors.mu.Unlock()
-
-	// Atuador sem sensor?
-	for aID := range actuators.actuatorsRegistred {
-		if _, taken := mt.byActuator[aID]; !taken {
-			// Sensor sem atuador?
-			for sID := range sensors.sensors {
-				if _, taken := mt.bySensor[sID]; !taken {
-					mt.byActuator[aID] = sID
-					mt.bySensor[sID] = aID
-					fmt.Printf("🔗 Match: sensor %d ↔ atuador %d\n", sID, aID)
-					return &Match{SensorID: sID, ActuatorID: aID}
-				}
-			}
-		}
+	if len(mt.freeActuators) > 0 {
+		aID := mt.freeActuators[0]
+		mt.freeActuators = mt.freeActuators[1:]
+		mt.byActuator[aID] = sID
+		mt.bySensor[sID] = aID
+		fmt.Printf("Match: sensor %d <-> atuador %d\n", sID, aID)
+		return &Match{SensorID: sID, ActuatorID: aID}
 	}
+
+	mt.freeSensors = append(mt.freeSensors, sID)
 	return nil
 }
 
-// ActuatorFor devolve o ID do atuador vinculado ao sensor (0 = nenhum).
+func (mt *MatchTable) RegisterActuator(aID uint16) *Match {
+	mt.mu.Lock()
+	defer mt.mu.Unlock()
+
+	if len(mt.freeSensors) > 0 {
+		sID := mt.freeSensors[0]
+		mt.freeSensors = mt.freeSensors[1:]
+		mt.byActuator[aID] = sID
+		mt.bySensor[sID] = aID
+		fmt.Printf("Match: sensor %d <-> atuador %d\n", sID, aID)
+		return &Match{SensorID: sID, ActuatorID: aID}
+	}
+
+	mt.freeActuators = append(mt.freeActuators, aID)
+	return nil
+}
+
 func (mt *MatchTable) ActuatorFor(sensorID uint16) uint16 {
 	mt.mu.RLock()
 	defer mt.mu.RUnlock()
 	return mt.bySensor[sensorID]
 }
 
-// RemoveSensor desfaz o vínculo quando um sensor some.
 func (mt *MatchTable) RemoveSensor(sensorID uint16) {
 	mt.mu.Lock()
 	defer mt.mu.Unlock()
 	if aID, ok := mt.bySensor[sensorID]; ok {
 		delete(mt.byActuator, aID)
 		delete(mt.bySensor, sensorID)
-		fmt.Printf("🔌 Vínculo removido: sensor %d ↔ atuador %d\n", sensorID, aID)
+		// Atuador ficou sem par — volta para a fila
+		mt.freeActuators = append(mt.freeActuators, aID)
+		fmt.Printf("Sensor %d removido, atuador %d voltou para fila\n", sensorID, aID)
 	}
 }
 
-// RemoveActuator desfaz o vínculo quando um atuador desconecta.
 func (mt *MatchTable) RemoveActuator(actuatorID uint16) {
 	mt.mu.Lock()
 	defer mt.mu.Unlock()
 	if sID, ok := mt.byActuator[actuatorID]; ok {
 		delete(mt.bySensor, sID)
 		delete(mt.byActuator, actuatorID)
-		fmt.Printf("🔌 Vínculo removido: atuador %d ↔ sensor %d\n", actuatorID, sID)
+		// Sensor ficou sem par — volta para a fila
+		mt.freeSensors = append(mt.freeSensors, sID)
+		fmt.Printf("Atuador %d removido, sensor %d voltou para fila\n", actuatorID, sID)
 	}
 }
-
-// ─────────────────────────────────────────────
-//  Integrador — o cérebro central
-// ─────────────────────────────────────────────
 
 type Integrador struct {
 	Sensors   *mapOfSensors
@@ -158,32 +165,23 @@ func NewIntegrador(s *mapOfSensors, c *MapOfClients, a *MapOfActuators) *Integra
 func (ig *Integrador) OnSensorData(data diagramaUdpInformation) {
 	isNew := !ig.Sensors.ExistsThisSensor(data.ID)
 
-	// Salva/atualiza no mapa
 	ig.Sensors.mu.Lock()
 	ig.Sensors.sensors[data.ID] = data
 	ig.Sensors.mu.Unlock()
 
-	// Se sensor novo → tenta parear com atuador livre
 	if isNew {
 		fmt.Printf("Novo sensor detectado: ID=%d tipo=%d\n", data.ID, data.Tipo)
-		ig.Matches.TryMatch(ig.Sensors, ig.Actuators)
+		ig.Matches.RegisterSensor(data.ID) // ← era TryMatch
 	}
 
-	// Broadcast para todos os clientes conectados
 	ig.BroadcastSensorUpdate(data)
-
-	// Lógica automática de controle
 	ig.AutoControl(data)
 }
 
-// ─── Chamado pelo WebSocket ao conectar novo atuador ─────────────────────────
-
 func (ig *Integrador) OnActuatorConnected(actuatorID uint16) {
 	fmt.Printf("Novo atuador conectado: ID=%d\n", actuatorID)
-	ig.Matches.TryMatch(ig.Sensors, ig.Actuators)
+	ig.Matches.RegisterActuator(actuatorID) // ← era TryMatch
 }
-
-// ─── Chamado ao desconectar atuador ──────────────────────────────────────────
 
 func (ig *Integrador) OnActuatorDisconnected(actuatorID uint16) {
 	ig.Matches.RemoveActuator(actuatorID)
@@ -265,7 +263,7 @@ func (ig *Integrador) OnClientCommand(clientID uint16, raw []byte) {
 	}
 
 	actuatorID := ig.Matches.ActuatorFor(cmd.SensorID)
-	
+
 	if actuatorID == 0 {
 		fmt.Printf("Cliente %d pediu controle do sensor %d, mas sem atuador vinculado\n",
 			clientID, cmd.SensorID)
@@ -283,7 +281,7 @@ func (ig *Integrador) OnClientCommand(clientID uint16, raw []byte) {
 func (ig *Integrador) SendCommandToActuator(actuatorID, sensorID uint16, command, triggeredBy string) {
 	a, ok := ig.Actuators.FindActuator(actuatorID)
 	if !ok {
-		fmt.Printf("⚠️  Atuador %d não encontrado no mapa\n", actuatorID)
+		fmt.Printf("Atuador %d não encontrado no mapa\n", actuatorID)
 		return
 	}
 
@@ -301,10 +299,10 @@ func (ig *Integrador) SendCommandToActuator(actuatorID, sensorID uint16, command
 
 	select {
 	case a.Send <- raw:
-		fmt.Printf("📤 Comando '%s' enviado → atuador %d (sensor %d) [%s]\n",
+		fmt.Printf("Comando '%s' enviado → atuador %d (sensor %d) [%s]\n",
 			command, actuatorID, sensorID, triggeredBy)
 	default:
-		fmt.Printf("⚠️  Canal do atuador %d cheio, comando descartado\n", actuatorID)
+		fmt.Printf("Canal do atuador %d cheio, comando descartado\n", actuatorID)
 	}
 }
 

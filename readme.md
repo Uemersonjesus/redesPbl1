@@ -393,3 +393,14 @@ IDs de clientes e atuadores são incrementais e não são reaproveitados após d
 
 Frames WebSocket longos
 As implementações de writePump usam payload length de 1 byte (máximo 125 bytes por frame). Mensagens maiores requerem implementação do extended payload length (opcodes 126/127 do RFC 6455).
+
+Para executar os testes, navegue até a pasta integrador/ e rode:
+
+    go test -v ./...                        (todos os testes)
+    go test -v -race ./...                  (com detector de race condition)
+    go test -v -run TestMatch ./...         (apenas testes de matchmaking)
+    go test -v -run TestCRC ./...           (apenas testes de CRC)
+    go test -v -run TestAutoControl ./...   (apenas testes de controle automático)
+
+A flag -race é recomendada pois ativa o detector de condições de corrida do Go,
+verificando se o acesso concorrente aos mapas e filas está corretamente sincronizado.

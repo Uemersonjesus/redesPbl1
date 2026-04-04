@@ -6,7 +6,7 @@ type diagramaUdpInformation struct {
 	ID          uint16 `json:"id"`
 	Tipo        uint8  `json:"tipo"`
 	Information uint8  `json:"information"` //ex  35 graus , 60 graus ou  40 % umidade , 80 % de umidade
-	Crc         uint8  `josn:"crc"`
+	Crc         uint8  `json:"crc"`
 	send        int
 }
 

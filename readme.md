@@ -417,4 +417,20 @@ Para o teste de conocrrência real foi ultilizado o import no main do _ "net/htt
 
 executando o comando abaixo conseguimos analisar os metricas reais do integrador.
 
-go tool pprof -http=:8081 http://[IP_DO_INTEGRADOR]:6060/debug/pprof/profile?seconds=30
+go tool pprof -http=:8081 http://[IP_DO_INTEGRADOR]:6060/debug/pprof/profile?seconds=30  para analisar consumo de cpu 
+
+go tool pprof -http=:8082 http://[IP_DO_INTEGRADOR]:6060/debug/pprof/heap  para analisar memory leaks
+
+go tool pprof -http=:8083 http://[IP_DO_INTEGRADOR]:6060/debug/pprof/allocs toda a memória que já foi usada desde o começo.
+
+no mesmo computador que está o integrador.
+
+Para rodar as instâncias de testes 
+
+# Sobe 3 sensores de cada tipo, 3 atuadores e 2 clientes
+.\subir.ps1 -IP 192.168.1.10 -Sensores 3 -Atuadores 3 -Clientes 2
+
+# Derruba tudo
+.\derrubar.ps1
+
+sendo necessário executar no mesmo diretório que se encontra os  scripts de execução

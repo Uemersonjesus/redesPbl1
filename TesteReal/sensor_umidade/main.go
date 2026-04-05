@@ -61,7 +61,7 @@ func main() {
 	defer conn.Close()
 
 	sensorID := generateID()
-	fmt.Printf("💧 Sensor Umidade | ID=%d | → %s\n", sensorID, addr)
+	fmt.Printf("Sensor Umidade | ID=%d | → %s\n", sensorID, addr)
 
 	value := UmidadeMin
 	ascending := true
@@ -85,8 +85,8 @@ func main() {
 			log.Printf("Erro ao enviar: %v", err)
 			continue
 		}
-
-		fmt.Printf("📤 ID=%d  %d%%\n", sensorID, value)
+		//Para não poluir terminal foi removido durante teste
+		//fmt.Printf("ID=%d  %d%%\n", sensorID, value)
 
 		if ascending {
 			if value >= UmidadeMax {

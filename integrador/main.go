@@ -5,20 +5,28 @@ import (
 	"log"
 	"net"
 	"net/http"
+	_ "net/http/pprof"
+	"runtime"
 )
 
 func main() {
 	fmt.Println("Integrador Iniciado")
 
-	
+	go func() {
+		log.Println("Análise pprof ativa em http://0.0.0.0:6060/debug/pprof/")
+		if err := http.ListenAndServe("0.0.0.0:6060", nil); err != nil {
+			log.Fatalf("Erro ao iniciar pprof: %v", err)
+		}
+	}()
+
+	runtime.SetMutexProfileFraction(5)
+	runtime.SetBlockProfileRate(1)
 	mapOfSensors := newDiagramUdpInformation()
 	globalMapOfClients := NewMapOfClients()
 	globalMapOfActuators := NewMapOfActuators()
 
-	
 	ig := NewIntegrador(&mapOfSensors, &globalMapOfClients, &globalMapOfActuators)
 
-	
 	addr, err := net.ResolveUDPAddr("udp", ":5000")
 	if err != nil {
 		log.Fatalf("Erro ao resolver endereço UDP: %v", err)
@@ -31,7 +39,6 @@ func main() {
 
 	go managerUdpConnections(connUDP, &mapOfSensors, ig)
 
-	
 	muxClientes := http.NewServeMux()
 	muxClientes.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		handleNativeWebsocketConection(w, r, &globalMapOfClients, ig)

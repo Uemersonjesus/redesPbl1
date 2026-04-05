@@ -85,8 +85,8 @@ func main() {
 			log.Printf("Erro ao enviar: %v", err)
 			continue
 		}
-
-		fmt.Printf("ID=%d  %d°C\n", sensorID, value)
+		//Para não poluir terminal foi removido durante teste
+		//fmt.Printf("ID=%d  %d°C\n", sensorID, value)
 
 		if ascending {
 			if value >= TempMax {

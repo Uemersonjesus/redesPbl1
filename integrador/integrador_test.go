@@ -51,6 +51,8 @@ func drainChan(ch chan []byte, timeout time.Duration) [][]byte {
 }
 
 // simpleCRC — cópia exata da função do sensor para uso nos testes.
+// Na verdade essa é  apenas um checksum , no pbl2 se der tempo
+// será feito o crc8 para o udp
 func simpleCRC(id uint16, tipo, info uint8) uint8 {
 	buf := make([]byte, 2)
 	binary.BigEndian.PutUint16(buf, id)

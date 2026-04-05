@@ -1,0 +1,13 @@
+# ── Stage 1: build ────────────────────────────────────────────────────────────
+FROM golang:1.22-alpine AS builder
+ 
+WORKDIR /app
+COPY main.go .
+RUN CGO_ENABLED=0 GOOS=linux go build -o sensor_umidade .
+ 
+# ── Stage 2: imagem mínima ────────────────────────────────────────────────────
+FROM scratch
+ 
+COPY --from=builder /app/sensor_umidade /sensor_umidade
+ 
+ENTRYPOINT ["/sensor_umidade"]

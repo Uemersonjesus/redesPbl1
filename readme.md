@@ -1,5 +1,6 @@
 
 1. Visão Geral do Sistema
+
 O RedesPBL12026 é um sistema distribuído de monitoramento de sensores IoT com controle automático e manual de atuadores. A arquitetura é composta por quatro componentes independentes que se comunicam em rede:
 
 Integrador — hub central que gerencia sensores, atuadores e clientes
@@ -8,7 +9,7 @@ Sensor de Umidade — envia leituras simuladas via UDP
 Atuador — recebe comandos do integrador via WebSocket
 Cliente — monitora sensores e envia comandos manuais via WebSocket
 
-Todos os componentes exceto o Integrador podem ser executados em qualquer computador da mesma rede local — basta apontar para o IP da máquina que hospeda o Integrador.
+Todos os componentes exceto o Integrador podem ser executados em qualquer computador da mesma rede local — basta apontar para o IP da máquina que hospeda o Integrador,E isso é feito na hora de executar o arquivo executavel  colocando nomedoarquivo  ip_do_integrador.Lembrando que depedendo do sistema operacional a forma de executar o arquivo .exe  , sensores , clienets e atuadores muda. 
 
 
 2. Estrutura de Diretórios
@@ -29,15 +30,13 @@ RedesPBL12026/
 │   └── Dockerfile
 ├── sensor_umidade/
 │   ├── main.go
-│   └── Dockerfile
+│   
 ├── atuador/
 │   ├── main.go
-│   └── Dockerfile
+│   
 └── cliente/
     ├── main.go
-    └── Dockerfile
-
-
+    
 3. Arquitetura e Comunicação
 Cada componente usa um protocolo diferente conforme sua função:
 
@@ -57,7 +56,7 @@ O Integrador é o único componente que precisa ter suas portas acessíveis na r
 
 
 4. Integrador
-O Integrador é o componente de maior complexidade do sistema. Ele recebe dados de sensores via UDP, gerencia vínculos sensor-atuador via matchmaking automático, transmite atualizações para clientes e executa controle automático por limites configuráveis.
+O Integrador é o componente de maior complexidade do sistema. Ele recebe dados de sensores via UDP, gerencia vínculos sensor-atuador via matchmaking um para um automático, transmite atualizações para clientes e executa controle automático por limites configuráveis.
 
 4.1 Arquivos e responsabilidades
 Arquivo
@@ -135,18 +134,18 @@ Buffer de leitura/escrita nos sockets WebSocket
 
 
 5. Sensores
-Existem dois sensores independentes: sensor_temperatura e sensor_umidade. Cada um é um programa Go autônomo que simula leituras físicas e as transmite ao Integrador via UDP. A lógica de ambos é idêntica — diferem apenas no tipo e na faixa de valores.
+Existem dois sensores independentes: sensor_temperatura e sensor_umidade. Cada um é um programa Go autônomo que simula leituras físicas e as transmite ao Integrador via UDP. A lógica de ambos é idêntica — diferem apenas no tipo e na faixa de valores. 
 
 5.1 Funcionamento
 Ao iniciar, gera um ID único via crypto/rand (uint16 entre 1 e 65535) — sem configuração manual
 Recebe o IP do Integrador como argumento de linha de comando
 Abre um socket UDP e envia uma leitura a cada 1 segundo
 O valor oscila continuamente entre mínimo e máximo, subindo e descendo de 1 em 1 (sawtooth simulado)
-Cada pacote inclui um CRC simples (XOR dos bytes do ID + tipo + valor)
+Cada pacote deveria incluir um CRC 8 bits , no entanto a implementação disso será feita aposteriori e foi implementado o checksum que é mais simples no lugar apenas para efetivamente ultilizar o espaço em bits no protocolo criado.
 
 5.2 Protocolo UDP — formato do pacote
 Cada pacote é um JSON serializado enviado como payload UDP:
-
+                                                
 { "id": 42301, "tipo": 1, "information": 35, "crc": 200 }
 
 Campo
@@ -176,6 +175,8 @@ O ID do sensor é gerado via crypto/rand a cada inicialização do processo — 
 Unicidade entre múltiplos containers no mesmo host (cada um gera seu próprio ID)
 Unicidade entre hosts diferentes na mesma rede
 Sem necessidade de coordenação manual de IDs ao escalar
+No entanto há um limite ,dos 65 mil sensores possíveis devido ao paradoxo do aniversariante colisões começam a se tornar comum em torno de 4000 sensores matematicamente 
+falando. 
 
 5.5 Pacotes utilizados
 Pacote stdlib
@@ -194,8 +195,6 @@ time
 Ticker de 1 segundo entre envios
 os / fmt / log
 Argumentos CLI e saída de status
-
-
 
 6. Atuador
 O atuador é o componente que representa um dispositivo físico controlável. Ele conecta ao Integrador via WebSocket, aguarda ser vinculado a um sensor e recebe comandos de ligar/desligar — tanto automáticos (disparo por limite) quanto manuais (enviados por um cliente).
@@ -404,3 +403,18 @@ Para executar os testes, navegue até a pasta integrador/ e rode:
 
 A flag -race é recomendada pois ativa o detector de condições de corrida do Go,
 verificando se o acesso concorrente aos mapas e filas está corretamente sincronizado.
+
+
+Para o teste de conocrrência real foi ultilizado o import no main do _ "net/http/pprof" e "runtime" e logo após a definição da  função main   go func() {
+        log.Println("Análise pprof ativa em http://0.0.0.0:6060/debug/pprof/")
+        if err := http.ListenAndServe("0.0.0.0:6060", nil); err != nil {
+            log.Fatalf("Erro ao iniciar pprof: %v", err)
+        }
+    }()
+
+    runtime .SetMutexProfileFraction(5) 
+    runtime.SetBlockProfileRate(1)
+
+executando o comando abaixo conseguimos analisar os metricas reais do integrador.
+
+go tool pprof -http=:8081 http://[IP_DO_INTEGRADOR]:6060/debug/pprof/profile?seconds=30

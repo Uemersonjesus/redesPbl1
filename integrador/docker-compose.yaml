@@ -13,4 +13,5 @@ services:
       - "9090:9090"
       # Sensores (UDP) — protocolo UDP obrigatório
       - "5000:5000/udp"
+      - "6060:6060"
  

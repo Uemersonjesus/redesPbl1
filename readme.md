@@ -405,6 +405,8 @@ A flag -race é recomendada pois ativa o detector de condições de corrida do G
 verificando se o acesso concorrente aos mapas e filas está corretamente sincronizado.
 
 
+Esta parte foi removida porque a ferramenta de visualizar as informações internas do go não funcionou.
+
 Para o teste de conocrrência real foi ultilizado o import no main do _ "net/http/pprof" e "runtime" e logo após a definição da  função main   go func() {
         log.Println("Análise pprof ativa em http://0.0.0.0:6060/debug/pprof/")
         if err := http.ListenAndServe("0.0.0.0:6060", nil); err != nil {
@@ -415,6 +417,7 @@ Para o teste de conocrrência real foi ultilizado o import no main do _ "net/htt
     runtime .SetMutexProfileFraction(5) 
     runtime.SetBlockProfileRate(1)
 
+no docker compose precisa adicionar - "6060:6060"
 executando o comando abaixo conseguimos analisar os metricas reais do integrador.
 
 go tool pprof -http=:8081 http://[IP_DO_INTEGRADOR]:6060/debug/pprof/profile?seconds=30  para analisar consumo de cpu 
@@ -427,10 +430,10 @@ no mesmo computador que está o integrador.
 
 Para rodar as instâncias de testes 
 
-# Sobe 3 sensores de cada tipo, 3 atuadores e 2 clientes
-.\subir.ps1 -IP 192.168.1.10 -Sensores 3 -Atuadores 3 -Clientes 2
+# Sobe 3 sensores de cada tipo, 3 atuadores e 2 clientes funciona no windowns.
+subir.bat 192.168.1.10 3 3 2  
 
-# Derruba tudo
-.\derrubar.ps1
+# Derruba tudo funciona no windowns.
+derrubar.bat
 
 sendo necessário executar no mesmo diretório que se encontra os  scripts de execução

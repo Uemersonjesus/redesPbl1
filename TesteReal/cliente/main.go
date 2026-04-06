@@ -173,7 +173,7 @@ func main() {
 		}
 	}
 
-	fmt.Printf("🔌 Conectado ao integrador %s\n\n", addr)
+	fmt.Printf("Conectado ao integrador %s\n\n", addr)
 
 	store := NewLocalStore()
 
@@ -194,7 +194,7 @@ func main() {
 
 			opcode := header[0] & 0x0F
 			if opcode == 8 {
-				fmt.Println("\n🔌 Integrador encerrou a conexão.")
+				fmt.Println("\nIntegrador encerrou a conexão.")
 				os.Exit(0)
 			}
 

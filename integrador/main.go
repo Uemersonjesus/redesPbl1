@@ -21,6 +21,7 @@ func main() {
 
 	runtime.SetMutexProfileFraction(5)
 	runtime.SetBlockProfileRate(1)
+
 	mapOfSensors := newDiagramUdpInformation()
 	globalMapOfClients := NewMapOfClients()
 	globalMapOfActuators := NewMapOfActuators()

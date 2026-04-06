@@ -89,7 +89,7 @@ func main() {
 		// Lê os 2 bytes do header do frame
 		header := make([]byte, 2)
 		if _, err := rw.Read(header); err != nil {
-			fmt.Println("🔌Conexão encerrada pelo integrador.")
+			fmt.Println("Conexão encerrada pelo integrador.")
 			break
 		}
 
@@ -97,7 +97,7 @@ func main() {
 
 		// Close frame
 		if opcode == 8 {
-			fmt.Println("🔌 Integrador enviou close frame.")
+			fmt.Println("Integrador enviou close frame.")
 			break
 		}
 

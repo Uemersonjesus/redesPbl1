@@ -34,6 +34,7 @@ func generateID() uint16 {
 	return uint16(n.Int64()) + 1
 }
 
+// Este é o ckecksum , aposteriori será implementado o crc
 func simpleCRC(id uint16, tipo, info uint8) uint8 {
 	buf := make([]byte, 2)
 	binary.BigEndian.PutUint16(buf, id)
@@ -61,7 +62,7 @@ func main() {
 	defer conn.Close()
 
 	sensorID := generateID()
-	fmt.Printf("💧 Sensor Umidade | ID=%d | → %s\n", sensorID, addr)
+	fmt.Printf("Sensor Umidade | ID=%d | → %s\n", sensorID, addr)
 
 	value := UmidadeMin
 	ascending := true

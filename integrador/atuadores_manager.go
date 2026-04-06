@@ -59,7 +59,7 @@ func (m *MapOfActuators) FindNewIdToActuator(a Actuator) uint16 {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	// Map lookup é O(1) — não precisa percorrer nada
+	
 	if a.ID != 0 {
 		if _, exists := m.actuatorsRegistred[a.ID]; !exists {
 			m.actuatorsRegistred[a.ID] = a
@@ -67,8 +67,7 @@ func (m *MapOfActuators) FindNewIdToActuator(a Actuator) uint16 {
 		return a.ID
 	}
 
-	// ID 0 significa que o atuador não tem ID ainda — gera um novo
-	// Também O(1): incrementa um contador em vez de buscar o maior
+	
 	m.nextID++
 	m.actuatorsRegistred[m.nextID] = a
 	return m.nextID

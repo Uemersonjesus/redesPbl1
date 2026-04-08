@@ -37,4 +37,5 @@ for i in $(seq 1 $CLIENTES); do
 done
 
 echo "Todos os processos foram iniciados em segundo plano."
+
 echo "Para ver os logs, use: tail -f log_atuador_1.txt"

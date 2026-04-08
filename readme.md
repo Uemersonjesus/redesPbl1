@@ -340,10 +340,7 @@ Todos os computadores na mesma rede local (WiFi doméstica, LAN, etc.)
 8.2 Passo 1 — Subir o Integrador
 Na pasta integrador/:
 
-docker compose up --build -d
-
-Para acompanhar os logs:
-docker compose logs -f
+docker compose up --build 
 
 Descobrir o IP da máquina do Integrador (necessário para os outros componentes):
 ipconfig          # Windows
@@ -352,16 +349,16 @@ ip addr           # Linux
 8.3 Passo 2 — Subir os sensores
 Em qualquer computador da rede, na pasta do sensor:
 
-Com Docker:
-docker build -t sensor-temperatura .
-docker run --rm sensor-temperatura 192.168.1.X
 
 Sem Docker (binário compilado):
 go build -o sensor_temperatura .
 ./sensor_temperatura 192.168.1.X
 
+
 Para o sensor de umidade, o mesmo processo na pasta sensor_umidade/:
 ./sensor_umidade 192.168.1.X
+
+ou use os executaveis que já foram compilados. 
 
 8.4 Passo 3 — Subir os atuadores
 Em qualquer computador da rede, na pasta atuador/:
@@ -393,19 +390,33 @@ IDs de clientes e atuadores são incrementais e não são reaproveitados após d
 Frames WebSocket longos
 As implementações de writePump usam payload length de 1 byte (máximo 125 bytes por frame). Mensagens maiores requerem implementação do extended payload length (opcodes 126/127 do RFC 6455).
 
+
 Para executar os testes, navegue até a pasta integrador/ e rode:
 
     go test -v ./...                        (todos os testes)
     go test -v -race ./...                  (com detector de race condition)
     go test -v -run TestMatch ./...         (apenas testes de matchmaking)
-    go test -v -run TestCRC ./...           (apenas testes de CRC)
     go test -v -run TestAutoControl ./...   (apenas testes de controle automático)
 
 A flag -race é recomendada pois ativa o detector de condições de corrida do Go,
 verificando se o acesso concorrente aos mapas e filas está corretamente sincronizado.
 
 
-Esta parte foi removida porque a ferramenta de visualizar as informações internas do go não funcionou.
+# Sobe 3 sensores de cada tipo, 3 atuadores e 2 clientes  no windowns.
+subir.bat 192.168.1.10 3 3 2  
+
+# Derruba tudo  no windowns.
+derrubar.bat
+
+# Sobe 3 sensores de cada tipo, 3 atuadores e 2 clientes  no linux.
+subir_linux.sh 192.168.1.10 3 3 2  
+
+# Derruba tudo  no linux.
+derrubar_linux.sh
+
+sendo necessário executar no mesmo diretório que se encontra os  scripts de execução
+
+Esta parte foi removida porque a ferramenta de visualizar as informações internas do go não funcionou após algumas tentativas.
 
 Para o teste de conocrrência real foi ultilizado o import no main do _ "net/http/pprof" e "runtime" e logo após a definição da  função main   go func() {
         log.Println("Análise pprof ativa em http://0.0.0.0:6060/debug/pprof/")
@@ -430,10 +441,3 @@ no mesmo computador que está o integrador.
 
 Para rodar as instâncias de testes 
 
-# Sobe 3 sensores de cada tipo, 3 atuadores e 2 clientes funciona no windowns.
-subir.bat 192.168.1.10 3 3 2  
-
-# Derruba tudo funciona no windowns.
-derrubar.bat
-
-sendo necessário executar no mesmo diretório que se encontra os  scripts de execução

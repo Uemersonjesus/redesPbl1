@@ -407,36 +407,16 @@ subir.bat 192.168.1.10 3 3 2
 # Derruba tudo  no windowns.
 derrubar.bat
 
+Esta versão linux não funciona devido ao motivo de que o arquivo .sh foi criado no windowns 
+e isso  gera um arquivo diferente daquele que seria no linux e portanto é necessário 
+com o código qeu está neles criar localmente  o arquivo e copiar. 
 # Sobe 3 sensores de cada tipo, 3 atuadores e 2 clientes  no linux.
 subir_linux.sh 192.168.1.10 3 3 2  
 
 # Derruba tudo  no linux.
 derrubar_linux.sh
 
-sendo necessário executar no mesmo diretório que se encontra os  scripts de execução
+sendo necessário executar no mesmo diretório que se encontra os  scripts de execução. 
 
-Esta parte foi removida porque a ferramenta de visualizar as informações internas do go não funcionou após algumas tentativas.
-
-Para o teste de conocrrência real foi ultilizado o import no main do _ "net/http/pprof" e "runtime" e logo após a definição da  função main   go func() {
-        log.Println("Análise pprof ativa em http://0.0.0.0:6060/debug/pprof/")
-        if err := http.ListenAndServe("0.0.0.0:6060", nil); err != nil {
-            log.Fatalf("Erro ao iniciar pprof: %v", err)
-        }
-    }()
-
-    runtime .SetMutexProfileFraction(5) 
-    runtime.SetBlockProfileRate(1)
-
-no docker compose precisa adicionar - "6060:6060"
-executando o comando abaixo conseguimos analisar os metricas reais do integrador.
-
-go tool pprof -http=:8081 http://[IP_DO_INTEGRADOR]:6060/debug/pprof/profile?seconds=30  para analisar consumo de cpu 
-
-go tool pprof -http=:8082 http://[IP_DO_INTEGRADOR]:6060/debug/pprof/heap  para analisar memory leaks
-
-go tool pprof -http=:8083 http://[IP_DO_INTEGRADOR]:6060/debug/pprof/allocs toda a memória que já foi usada desde o começo.
-
-no mesmo computador que está o integrador.
-
-Para rodar as instâncias de testes 
+use os comandos para subir vários simlultâneamente e use o comando  docker stats para averiguar o consumo de recursos conforme o processo escala. 
 

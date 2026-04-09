@@ -27,7 +27,7 @@ RedesPBL12026/
 │   └── docker-compose.yaml
 ├── sensor_temperatura/
 │   ├── main.go
-│   └── Dockerfile
+│   
 ├── sensor_umidade/
 │   ├── main.go
 │   

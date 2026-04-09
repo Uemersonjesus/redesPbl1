@@ -24,6 +24,5 @@ EXPOSE 9090
 # Sensores (UDP)
 EXPOSE 5000/udp
 
-EXPOSE 6060
  
 ENTRYPOINT ["/integrador"]

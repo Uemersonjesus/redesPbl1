@@ -9,8 +9,7 @@ Sensor de Umidade — envia leituras simuladas via UDP
 Atuador — recebe comandos do integrador via WebSocket
 Cliente — monitora sensores e envia comandos manuais via WebSocket
 
-Todos os componentes exceto o Integrador podem ser executados em qualquer computador da mesma rede local — basta apontar para o IP da máquina que hospeda o Integrador,E isso é feito na hora de executar o arquivo executavel  colocando nomedoarquivo  ip_do_integrador.Lembrando que depedendo do sistema operacional a forma de executar o arquivo .exe  , sensores , clienets e atuadores muda. 
-
+Todos os componentes exceto o Integrador podem ser executados em qualquer computador da mesma rede local — basta apontar para o IP da máquina que hospeda o Integrador,E isso é feito na hora de executar o arquivo executavel  colocando nomedoarquivo  ip_do_integrador.Lembrando que depedendo do sistema operacional a forma de executar o arquivo executavel  para sensores , clientes e atuadores muda. Por exemplo  no windowns atuador.exe 198.168.100.64 , no entanto no linux é ./atuador_linux 198.168.100.64 
 
 2. Estrutura de Diretórios
 RedesPBL12026/
